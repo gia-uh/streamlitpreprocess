@@ -5,7 +5,7 @@ from collections import Counter
 import plotly.graph_objects as go
 from minio import Minio
 import json
-
+import numpy as np
 
 minio_config = st.text_input('MinioInfoData', 'miniodata.json')
 file_path = st.text_input('Path', 'saved.json')
@@ -22,9 +22,6 @@ if st.button('Update Data from server'):
 
     with open(file_path, 'wb') as file:
         file.write(response.data)
-
-
-
 
 
 data = load_file(file_path)
@@ -50,13 +47,15 @@ count = Counter()
 for user in ans:
     users[user.extra_data['user']['id']] = user.extra_data['user']
     count[user.extra_data['user']['id']] += 1
-    users[user.extra_data['user']['id']]['classified'] = count[user.extra_data['user']['id']]
+    users[user.extra_data['user']['id']
+          ]['classified'] = count[user.extra_data['user']['id']]
 
 df = pd.DataFrame([values for values in users.values()])
 
 df
 
-labels = [f'{name} ({username})' for name, username in zip(df.first_name, df.username)]
+labels = [f'{name} ({username})' for name,
+          username in zip(df.first_name, df.username)]
 values = df.classified
 
 pieUsers = go.Figure(data=[go.Pie(labels=labels, values=values)])
@@ -64,20 +63,28 @@ st.plotly_chart(pieUsers)
 
 
 
-df = pd.DataFrame([{'text': values.text, 'ans': values.answers[0].answer} for values in data])
+
+df = pd.DataFrame([dict(**{'text': values.text},
+    **Counter(map(lambda x: x.answer, values.answers))) for values in data])
+df = df.fillna(0)
+df
+
+ds = df.describe()
+ds
+
+
+df = df[np.max([df.Positivo, df.Negativo, df.Neutro, df.Objetivo], axis=0) >= 2]
 
 df
 
-d = df.describe()
+ds = df.describe()
 
-d
-
-gb = df.groupby('ans').count()
-gb
+ds
 
 
-labels = gb.index
-values = gb.text
+# Bug: voy a dividir entre 2, esta no es la expresión correcta
+labels = ['Positivo', 'Negativo', 'Neutro', 'Objetivo']
+values = np.array([df.Positivo.sum(), df.Negativo.sum(), df.Neutro.sum(), df.Objetivo.sum()])/2
 
 pieAns = go.Figure(data=[go.Pie(labels=labels, values=values)])
 

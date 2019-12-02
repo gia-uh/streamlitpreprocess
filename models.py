@@ -18,7 +18,7 @@ from sklearn.model_selection import ShuffleSplit
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.linear_model import RidgeClassifier
-
+from datetime import datetime
 
 os.makedirs('models', exist_ok=True)
 os.makedirs('learningcurves', exist_ok=True)
@@ -62,6 +62,7 @@ def plot_confusion_matrix(y_true, y_pred, classes,
     return cm
 
 def train_svm(X,Y, label_encoder, model, model_name):
+    starts = datetime.now()
     le = label_encoder
     X_train, X_test, y_train, y_test = train_test_split( X, Y, test_size=0.10, random_state=42)
 
@@ -82,7 +83,7 @@ def train_svm(X,Y, label_encoder, model, model_name):
                         title=model_name + ' Normalized confusion matrix')
 
 
-
+    st.markdown(f'**Run for:** {datetime.now() - starts}')
 
     # return (cm, cmn)
 
@@ -238,22 +239,6 @@ def test_cases(vectorizer, X, Y, model, le):
     st.markdown('****')
 
 
-    title = 'mlpclassifier'
-    estimator = MLPClassifier()
-
-
-    train_svm(X,Y, le, estimator, name.format(title=title, vectorizer=vectorizer))
-
-    if st.checkbox('Plot Learning Curves ' + name.format(title=title, vectorizer=vectorizer)):
-        plot = learning_curves_preprocess(estimator, name.format(title=title, vectorizer=vectorizer), X, Y)
-
-        st.pyplot(plot)
-
-
-    st.markdown('****')
-
-
-
     title = 'randomForest'
     estimator = RandomForestClassifier()
 
@@ -282,5 +267,19 @@ def test_cases(vectorizer, X, Y, model, le):
 
     st.markdown('****')
 
+
+    title = 'mlpclassifier'
+    estimator = MLPClassifier()
+
+
+    train_svm(X,Y, le, estimator, name.format(title=title, vectorizer=vectorizer))
+
+    if st.checkbox('Plot Learning Curves ' + name.format(title=title, vectorizer=vectorizer)):
+        plot = learning_curves_preprocess(estimator, name.format(title=title, vectorizer=vectorizer), X, Y)
+
+        st.pyplot(plot)
+
+
+    st.markdown('****')
 
 # plt.show()

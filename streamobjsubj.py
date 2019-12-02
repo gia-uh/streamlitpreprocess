@@ -12,6 +12,7 @@ from sklearn import preprocessing
 from models import train_svm, plot_learning_curve, learning_curves_preprocess, test_cases
 from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
+from collections import Counter
 # from models import train_svm
 
 from bert_serving.client import BertClient
@@ -22,18 +23,37 @@ def to_obj_sub(value):
 
     return 'Subjetivo'
 
+
+def generate_dataframe(type, data):
+
+    yudy_rule = st.checkbox("Correct match", key='correctMatch')
+
+    # This is incorrect asumtion
+    if yudy_rule:
+        data = [value for value in data if max(Counter((v.answer for v in value.answers)).values())>=2 ]
+
+    if 'Todo' == type:
+        return pd.DataFrame([{'text': values.text, 'ans': values.answers[0].answer} for values in data])
+
+    if 'Objetivo - Subjetivo' == type:
+        return pd.DataFrame([{'text': values.text, 'ans': to_obj_sub(values.answers[0].answer)} for values in data])
+
+    if "Positivo - Neutro - Negativo":
+        return pd.DataFrame([{'text': values.text, 'ans': values.answers[0].answer} for values in data if values.answers[0].answer != 'Objetivo'])
+
+    raise Exception(f"type is {type}")
+
 file_path = st.text_input('Path', 'saved.json')
 
 data = load_file(file_path)
 
-df = pd.DataFrame([{'text': values.text, 'ans': to_obj_sub(values.answers[0].answer)} for values in data])
+types = ['Todo', "Positivo - Neutro - Negativo", 'Objetivo - Subjetivo']
+t = st.selectbox('Tipo de dato', types, key='dataselector')
+
+df = generate_dataframe(t,data)
 
 
 df
-
-btn_todo = st.button("todo")
-btn_pnn = st.button("Positivo - Neutro - Negativo")
-btn_os = st.button("Objetivo - Subjetivo")
 
 
 
