@@ -6,9 +6,32 @@ import plotly.graph_objects as go
 from minio import Minio
 import json
 import numpy as np
+from datetime import datetime
+import os
 
 minio_config = st.text_input('MinioInfoData', 'miniodata.json')
 file_path = st.text_input('Path', 'saved.json')
+
+def merge(data, datam):
+    datad = {i['id']:i for i in data}
+    datam = {i['id']:i for i in datam}
+    for idd, datm in datam.items():
+        if idd in datad:
+            datd = datad[idd]
+            ansm = {i['extra_data']['user']['id']:i for i in datm['answers']}
+            ansd = {i['extra_data']['user']['id']:i for i in datd['answers']}
+            for ida,ans in ansm.items():
+                if ida in ansd:
+                    t1 = datetime.strptime(ansd[ida]['extra_data']['time'].split('.')[0],'%Y-%d-%m %H:%M:%S')
+                    t2 = datetime.strptime(ansm[ida]['extra_data']['time'].split('.')[0],'%Y-%d-%m %H:%M:%S')
+                    if t1<t2:
+                        ansd[ida]=ans
+                else:
+                    ansd[ida]=ans
+            datad[idd]['answers'] = [i for i in ansd.values()]
+        else:
+            datad[idd]=datm
+    return [i for i in datad.values()]
 
 
 if st.button('Update Data from server'):
@@ -19,9 +42,15 @@ if st.button('Update Data from server'):
                         secret_key=config['secret_key'],
                         secure=False)
     response = minioClient.get_object('metaclassifier', 'data/saved.json')
+    datam = json.loads(response.data)
+    if os.path.exists(file_path):
+        data = json.load(open(file_path))
+    else:
+        data = {}
 
-    with open(file_path, 'wb') as file:
-        file.write(response.data)
+    with open(file_path, 'w') as file:
+        merged = merge(data, datam)
+        file.write(json.dumps(merged, indent=2))
 
 
 data = load_file(file_path)
