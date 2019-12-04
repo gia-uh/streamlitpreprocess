@@ -13,6 +13,8 @@ from models import train_svm, plot_learning_curve, learning_curves_preprocess, t
 from sklearn.neural_network import MLPClassifier
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from collections import Counter
+from joblib import dump, load
+import os
 # from models import train_svm
 
 from bert_serving.client import BertClient
@@ -91,10 +93,12 @@ if st.checkbox('Count Vectorizer'):
 
     cv, X = vectorizeTexts(df.text)
 
+    cv_model_name = st.text_input('Model Name', 'countvectorizer.joblib')
+    dump(cv, os.path.join('models', cv_model_name))
 
     title = 'LinearSVC'
 
-    test_cases('CountVectorizer', X, Y, svm.LinearSVC(), le)
+    test_cases(f'CountVectorizer {t}', X, Y, svm.LinearSVC(), le)
 
 
 
@@ -115,7 +119,7 @@ if st.checkbox('SpacyVect'):
 
     st.title('Models with Spacy tensor')
 
-    test_cases('SpacyVectorizer', X, Y, svm.LinearSVC(), le)
+    test_cases(f'SpacyVectorizer {t}', X, Y, svm.LinearSVC(), le)
 
 
 
@@ -134,5 +138,5 @@ if st.checkbox('BertVect'):
 
 
 
-    test_cases('Bert', X, Y, svm.LinearSVC(), le)
+    test_cases(f'Bert {t}', X, Y, svm.LinearSVC(), le)
 

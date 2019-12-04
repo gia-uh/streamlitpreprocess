@@ -19,6 +19,7 @@ from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.linear_model import RidgeClassifier
 from datetime import datetime
+from joblib import dump, load
 
 os.makedirs('models', exist_ok=True)
 os.makedirs('learningcurves', exist_ok=True)
@@ -83,9 +84,11 @@ def train_svm(X,Y, label_encoder, model, model_name):
                         title=model_name + ' Normalized confusion matrix')
 
 
+    if st.button('Save ' + model_name):
+        dump(model, os.path.join('models', model_name + '.joblib'))
     st.markdown(f'**Run for:** {datetime.now() - starts}')
 
-    # return (cm, cmn)
+    # return mo
 
 
 
