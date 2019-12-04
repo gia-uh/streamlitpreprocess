@@ -23,10 +23,10 @@ def merge(data, datam):
             for ida,ans in ansm.items():
                 if ida in ansd:
                     t1 = ansd[ida]['extra_data']
-                    t1 = t1.get('time','"2000-01-01 00:01:00.0000"')
+                    t1 = t1.get('time','2000-01-01 00:01:00.0000"')
                     t1 = datetime.strptime(t1.split('.')[0],'%Y-%d-%m %H:%M:%S')
                     t2 = ansm[ida]['extra_data']
-                    t2 = t2.get('time','"2000-01-01 00:01:00.0000"')
+                    t2 = t2.get('time','2000-01-01 00:01:00.0000"')
                     t2 = datetime.strptime(t2.split('.')[0],'%Y-%d-%m %H:%M:%S')
                     if t1<t2:
                         ansd[ida]=ans
