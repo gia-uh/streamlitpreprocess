@@ -24,10 +24,10 @@ def merge(data, datam):
                 if ida in ansd:
                     t1 = ansd[ida]['extra_data']
                     t1 = t1.get('time','2000-01-01 00:01:00.0000"')
-                    t1 = datetime.strptime(t1.split('.')[0],'%Y-%d-%m %H:%M:%S')
+                    t1 = datetime.strptime(t1.split('.')[0],'%Y-%m-%d %H:%M:%S')
                     t2 = ansm[ida]['extra_data']
                     t2 = t2.get('time','2000-01-01 00:01:00.0000"')
-                    t2 = datetime.strptime(t2.split('.')[0],'%Y-%d-%m %H:%M:%S')
+                    t2 = datetime.strptime(t2.split('.')[0],'%Y-%m-%d %H:%M:%S')
                     if t1<t2:
                         ansd[ida]=ans
                 else:
@@ -114,11 +114,18 @@ ds = df.describe()
 
 ds
 
+pos = df[df.Positivo >= 2].Positivo.count()
+neg = df[df.Negativo >= 2].Negativo.count()
+neutro = df[df.Neutro >= 2].Neutro.count()
+obj = df[df.Objetivo >= 2].Objetivo.count()
+
+
 
 # Bug: voy a dividir entre 2, esta no es la expresión correcta
 labels = ['Positivo', 'Negativo', 'Neutro', 'Objetivo']
-values = np.array([df.Positivo.sum(), df.Negativo.sum(), df.Neutro.sum(), df.Objetivo.sum()])/2
+values = np.array([pos,neg,neutro, obj])
 
 pieAns = go.Figure(data=[go.Pie(labels=labels, values=values)])
 
+st.markdown('### Cantidad de Comentarios con al menos 2 coencidencias')
 st.plotly_chart(pieAns)
