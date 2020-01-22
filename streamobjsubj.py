@@ -26,22 +26,24 @@ def to_obj_sub(value):
     return 'Subjetivo'
 
 
-def generate_dataframe(type, data):
+def generate_dataframes(type, data):
 
     yudy_rule = st.checkbox("Correct match", key='correctMatch')
+
+    all = pd.DataFrame([{'text': values.text, 'ans': values.answers[0].answer} for values in data])
 
     # This is incorrect asumtion
     if yudy_rule:
         data = [value for value in data if max(Counter((v.answer for v in value.answers)).values())>=2 ]
 
     if 'Todo' == type:
-        return pd.DataFrame([{'text': values.text, 'ans': values.answers[0].answer} for values in data])
+        return all, pd.DataFrame([{'text': values.text, 'ans': values.answers[0].answer} for values in data])
 
     if 'Objetivo - Subjetivo' == type:
-        return pd.DataFrame([{'text': values.text, 'ans': to_obj_sub(values.answers[0].answer)} for values in data])
+        return all,  pd.DataFrame([{'text': values.text, 'ans': to_obj_sub(values.answers[0].answer)} for values in data])
 
     if "Positivo - Neutro - Negativo":
-        return pd.DataFrame([{'text': values.text, 'ans': values.answers[0].answer} for values in data if values.answers[0].answer != 'Objetivo'])
+        return all, pd.DataFrame([{'text': values.text, 'ans': values.answers[0].answer} for values in data if values.answers[0].answer != 'Objetivo'])
 
     raise Exception(f"type is {type}")
 
@@ -52,7 +54,7 @@ data = load_file(file_path)
 types = ['Todo', "Positivo - Neutro - Negativo", 'Objetivo - Subjetivo']
 t = st.selectbox('Tipo de dato', types, key='dataselector')
 
-df = generate_dataframe(t,data)
+all_df, df = generate_dataframes(t,data)
 
 
 df
@@ -91,7 +93,9 @@ if st.checkbox('Count Vectorizer'):
         X = X.toarray()
         return cv, X
 
-    cv, X = vectorizeTexts(df.text)
+    cv, X = vectorizeTexts(all_df.text)
+
+    X = cv.transform(df.text).toarray() # NOTE: Está transformada a densa
 
     cv_model_name = st.text_input('Model Name', 'countvectorizer.joblib')
     dump(cv, os.path.join('models', cv_model_name))
